@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent WhatsApp Monitor</title>
+    <meta name="description" content="Halaman monitor dan tautan WhatsApp AI Agent BPN Bojonegoro">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- React via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="glow-sphere glow-sphere-1"></div>
+    <div class="glow-sphere glow-sphere-2"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ─── Status Badge Component ─────────────────────
+        function StatusBadge({ status }) {
+            const map = {
+                disconnected: { cls: 'status-disconnected', text: 'Disconnected' },
+                connecting: { cls: 'status-connecting', text: 'Mencoba Terhubung' },
+                qr: { cls: 'status-qr', text: 'Menunggu Scan QR' },
+                ready: { cls: 'status-connected', text: 'Aktif & Terhubung' },
+                authenticated: { cls: 'status-connected', text: 'Aktif & Terhubung' },
+                api_error: { cls: 'status-disconnected', text: 'API Error' },
+                auth_failure: { cls: 'status-disconnected', text: 'Auth Gagal' },
+            };
+            const info = map[status] || map.connecting;
+
+            return (
+                <div className={`status-badge ${info.cls}`}>
+                    <div className="status-dot"></div>
+                    <span>{info.text}</span>
+                </div>
+            );
+        }
+
+        // ─── QR Display Component ───────────────────────
+        function QRDisplay({ qrDataUrl }) {
+            return (
+                <>
+                    <div className="qr-wrapper">
+                        <img src={qrDataUrl} alt="WhatsApp QR Code" />
+                    </div>
+                    <div className="state-title" style={{ marginTop: 24 }}>Barcode WhatsApp Ready</div>
+                    <div className="state-desc">
+                        Scan barcode di atas menggunakan aplikasi WhatsApp Anda untuk mengaktifkan AI Agent.
+                    </div>
+                </>
+            );
+        }
+
+        // ─── Connecting State ───────────────────────────
+        function ConnectingDisplay() {
+            return (
+                <>
+                    <div className="spinner"></div>
+                    <div className="state-title">Menghubungkan Client...</div>
+                    <div className="state-desc">
+                        Sedang menginisialisasi sesi WhatsApp Web. Silakan tunggu beberapa saat.
+                    </div>
+                </>
+            );
+        }
+
+        // ─── Connected / Success State ──────────────────
+        function ConnectedDisplay() {
+            return (
+                <>
+                    <div className="success-checkmark">
+                        <svg viewBox="0 0 52 52">
+                            <circle cx="26" cy="26" r="25" fill="none" />
+                            <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                        </svg>
+                    </div>
+                    <div className="state-title">AI Agent Berhasil Terhubung!</div>
+                    <div className="state-desc">
+                        WhatsApp Bot Anda aktif sepenuhnya dan siap melayani percakapan secara otomatis 24/7.
+                    </div>
+                </>
+            );
+        }
+
+        // ─── Error / Offline State ──────────────────────
+        function ErrorDisplay({ title, desc }) {
+            return (
+                <>
+                    <div className="spinner danger"></div>
+                    <div className="state-title">{title}</div>
+                    <div className="state-desc">{desc}</div>
+                </>
+            );
+        }
+
+        // ─── Scan Guide Steps ───────────────────────────
+        function ScanGuide() {
+            return (
+                <div className="steps">
+                    <div className="steps-title">Cara Menautkan Perangkat:</div>
+                    <ol>
+                        <li>Buka aplikasi <span>WhatsApp</span> di HP Anda.</li>
+                        <li>Ketuk ikon <span>Menu (⋮)</span> atau <span>Pengaturan (⚙️)</span>.</li>
+                        <li>Pilih <span>Perangkat Tertaut (Linked Devices)</span>.</li>
+                        <li>Ketuk <span>Tautkan Perangkat (Link a Device)</span>.</li>
+                        <li>Arahkan kamera HP Anda ke barcode di atas.</li>
+                    </ol>
+                </div>
+            );
+        }
+
+        // ─── Main App Component ─────────────────────────
+        function App() {
+            const [status, setStatus] = useState('connecting');
+            const [qrDataUrl, setQrDataUrl] = useState(null);
+            const prevStatusRef = useRef('');
+            const prevQrRef = useRef('');
+
+            useEffect(() => {
+                async function fetchStatus() {
+                    try {
+                        const res = await fetch('/api/status');
+                        const data = await res.json();
+
+                        // Hanya update state jika ada perubahan
+                        if (data.status !== prevStatusRef.current || data.qr !== prevQrRef.current) {
+                            prevStatusRef.current = data.status;
+                            prevQrRef.current = data.qr;
+                            setStatus(data.status);
+                            setQrDataUrl(data.qr);
+                        }
+                    } catch (err) {
+                        if (prevStatusRef.current !== 'api_error') {
+                            prevStatusRef.current = 'api_error';
+                            setStatus('api_error');
+                            setQrDataUrl(null);
+                        }
+                    }
+                }
+
+                fetchStatus();
+                const interval = setInterval(fetchStatus, 1500);
+                return () => clearInterval(interval);
+            }, []);
+
+            // Determine what to render in the display area
+            let displayContent;
+            let showGuide = false;
+
+            if (status === 'qr' && qrDataUrl) {
+                displayContent = <QRDisplay qrDataUrl={qrDataUrl} />;
+                showGuide = true;
+            } else if (status === 'ready' || status === 'authenticated') {
+                displayContent = <ConnectedDisplay />;
+            } else if (status === 'connecting') {
+                displayContent = <ConnectingDisplay />;
+            } else if (status === 'api_error') {
+                displayContent = (
+                    <ErrorDisplay
+                        title="Koneksi API Terputus"
+                        desc="Tidak dapat terhubung ke server backend. Pastikan server node.js Anda sedang berjalan."
+                    />
+                );
+            } else {
+                displayContent = (
+                    <ErrorDisplay
+                        title="Server Offline / Reconnecting"
+                        desc="Koneksi ke backend terputus atau client sedang merestart. Silakan periksa log server."
+                    />
+                );
+            }
+
+            return (
+                <>
+                    <div className="header">
+                        <h1>AI Agent WhatsApp</h1>
+                        <p>Halaman Tautan & Monitoring Bot</p>
+                    </div>
+
+                    <div className="card">
+                        <StatusBadge status={status} />
+                        <div className="display-area">
+                            {displayContent}
+                        </div>
+                        {showGuide && <ScanGuide />}
+                    </div>
+
+                    <div className="footer">
+                        &copy; 2026 AI Agent Kantor Pertanahan Kabupaten Bojonegoro · ATR/BPN RI · Powered By - BPN NextGen
+                    </div>
+                </>
+            );
+        }
+
+        // ─── Mount React App ────────────────────────────
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
