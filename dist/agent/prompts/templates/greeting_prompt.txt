@@ -1,9 +1,17 @@
 Halo Kak! Selamat datang di layanan asisten digital Kantor Pertanahan Bojonegoro. Senang sekali bisa menyapa Kakak hari ini. 🙌
 
 Silakan pilih informasi yang Kakak butuhkan dengan mengetik angkanya saja:
+
 1. 🔍 *Informasi & Persyaratan Layanan* (Balik Nama, Roya, PTSL, dll)
+
 2. 📂 *Update Pemrosesan Berkas* (Cek status berkas Kakak di BPN)
-3. 🎓 *Informasi Soal Magang* (Pendaftaran & Info Magang di BPN)
+
+3. 💳 *Cara Pembayaran SPS* (Cara bayar & kanal pembayaran resmi)
+
 4. 📍 *Cek Lokasi Kantor* (Alamat & Link Google Maps BPN Bojonegoro)
+
+5. 📞 *Pengaduan* (Hubungi Customer Service Admin)
+
+6. 🎓 *Informasi Soal Magang* (Pendaftaran & Info Magang di BPN)
 
 Atau Kakak bisa langsung tanya apa saja soal pertanahan, TARA siap bantu sampai tuntas! 😊✨
