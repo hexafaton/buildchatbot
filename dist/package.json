@@ -1,7 +1,7 @@
 {
   "name": "whatsapp-chatbot",
   "version": "1.0.0",
-  "description": "WhatsApp chatbot dengan whatsapp-web.js dan OpenAI GPT-4o-mini",
+  "description": "WhatsApp chatbot dengan whatsapp-web.js dan OpenAI GPT-5-mini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
